@@ -419,7 +419,7 @@
         ];
         let ok = false;
         for (const p of candidates) {
-          try { await loadScript(p); ok = true; break; } catch { }
+          try { await loadScript(p); ok = true; break; } catch (e) { }
         }
         fabric = ok ? window.fabric : null;
       }
@@ -434,7 +434,7 @@
         if (mod && mod.EraserBrush && !fabric.EraserBrush) {
           fabric.EraserBrush = mod.EraserBrush;
         }
-      } catch { }
+      } catch (e) { }
       if (!fabric.EraserBrush) {
         class EraserBrush extends fabric.PencilBrush {
           constructor(canvas) {
@@ -521,7 +521,7 @@
           const py = Math.max(12, rect.top - ph - 20);
           popup.style.left = px + 'px';
           popup.style.top = py + 'px';
-        } catch { }
+        } catch (e) { }
       }
       function hidePopup() { popup.style.display = 'none'; }
       document.addEventListener('mousedown', (e) => {
@@ -530,7 +530,7 @@
             const within = popup.contains(e.target) || document.getElementById('modeDraw').contains(e.target) || document.getElementById('modeErase').contains(e.target);
             if (!within) hidePopup();
           }
-        } catch { }
+        } catch (e) { }
       });
 
       let currentBrush = null;
@@ -545,7 +545,7 @@
           canvas.selection = false;
           canvas.getObjects().forEach(o => o.selectable = false);
           if (!(currentBrush instanceof fabric.PencilBrush)) {
-            try { currentBrush = new fabric.PencilBrush(canvas); } catch { try { currentBrush = new fabric.PencilBrush({ canvas }); } catch { } }
+            try { currentBrush = new fabric.PencilBrush(canvas); } catch (e) { try { currentBrush = new fabric.PencilBrush({ canvas }); } catch (e) { } }
             if (!currentBrush) currentBrush = new fabric.PencilBrush(canvas);
             currentBrush.color = penColor.value;
             currentBrush.width = currentPenWidth;
@@ -575,9 +575,9 @@
           canvas.selection = false;
           canvas.skipTargetFind = true;
           canvas.getObjects().forEach(o => { o.selectable = false; o.erasable = true; });
-          try { canvas.discardActiveObject(); } catch { }
+          try { canvas.discardActiveObject(); } catch (e) { }
           let eBrush = null;
-          try { if (fabric && fabric.EraserBrush) eBrush = new fabric.EraserBrush(canvas); } catch { }
+          try { if (fabric && fabric.EraserBrush) eBrush = new fabric.EraserBrush(canvas); } catch (e) { }
           if (eBrush) {
             eBrush.width = Number(state.eraseSize) || 80;
             eBrush.strokeLineCap = 'round';
@@ -611,7 +611,7 @@
             height: typeof canvas.getHeight === 'function' ? canvas.getHeight() : null,
           };
           return JSON.stringify(pack);
-        } catch { return null; }
+        } catch (e) { return null; }
       }
       function updateUndoRedoUI() {
         const { arr, idxRef, i } = getCurrentHistory();
@@ -631,7 +631,7 @@
           idxRef[i] = arr.length - 1;
           if (arr.length > 50) { arr.splice(0, arr.length - 50); idxRef[i] = arr.length - 1; }
           updateUndoRedoUI();
-        } catch { }
+        } catch (e) { }
       }
       let restoring = false;
       async function restoreFromHistory(toIndex) {
@@ -641,36 +641,36 @@
           if (!json) return;
           restoring = true;
           canvas.clear();
-          let parsed = null; try { parsed = JSON.parse(json); } catch { parsed = null; }
+          let parsed = null; try { parsed = JSON.parse(json); } catch (e) { parsed = null; }
           const dataForCanvas = parsed && parsed.data && parsed.data.objects ? parsed.data : parsed;
           if (!dataForCanvas) { restoring = false; return; }
           canvas.loadFromJSON(dataForCanvas, () => {
-            try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch { }
-            try { setMode(state.mode); } catch { }
-            try { if (state.mode === 'erase' && typeof fabric !== 'undefined' && fabric.EraserBrush) { if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) { const eb = new fabric.EraserBrush(canvas); eb.width = Number(state.eraseSize) || 80; eb.strokeLineCap = 'round'; eb.strokeLineJoin = 'round'; eb.inverted = false; eb.shadow = null; canvas.freeDrawingBrush = eb; } canvas.isDrawingMode = true; canvas.selection = false; canvas.skipTargetFind = true; } } catch { }
+            try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch (e) { }
+            try { setMode(state.mode); } catch (e) { }
+            try { if (state.mode === 'erase' && typeof fabric !== 'undefined' && fabric.EraserBrush) { if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) { const eb = new fabric.EraserBrush(canvas); eb.width = Number(state.eraseSize) || 80; eb.strokeLineCap = 'round'; eb.strokeLineJoin = 'round'; eb.inverted = false; eb.shadow = null; canvas.freeDrawingBrush = eb; } canvas.isDrawingMode = true; canvas.selection = false; canvas.skipTargetFind = true; } } catch (e) { }
             try {
               const defaultBg = state.bgColor || canvas.backgroundColor || '#121212';
               const toBg = (parsed && parsed.backgroundColor) ? parsed.backgroundColor : defaultBg;
               const applyBg = (!toBg || toBg === 'transparent') ? defaultBg : toBg;
               try { canvas.setBackgroundColor(applyBg, () => {}); }
-              catch { canvas.backgroundColor = applyBg; }
-            } catch { }
-            try { if (parsed && parsed.viewportTransform && typeof canvas.setViewportTransform === 'function') { canvas.setViewportTransform(parsed.viewportTransform); } } catch { }
-            try { fit(); } catch { }
+              catch (e) { canvas.backgroundColor = applyBg; }
+            } catch (e) { }
+            try { if (parsed && parsed.viewportTransform && typeof canvas.setViewportTransform === 'function') { canvas.setViewportTransform(parsed.viewportTransform); } } catch (e) { }
+            try { fit(); } catch (e) { }
             if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll();
-            try { const pi = i; state.pages[pi] = canvas.toJSON(); try { const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 }); state.pageThumbs[pi] = url; } catch { } } catch { }
+            try { const pi = i; state.pages[pi] = canvas.toJSON(); try { const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 }); state.pageThumbs[pi] = url; } catch (e) { } } catch (e) { }
             restoring = false;
             idxRef[i] = toIndex;
             updateUndoRedoUI();
           });
-        } catch { restoring = false; }
+        } catch (e) { restoring = false; }
       }
       function undo() { const { idxRef, i } = getCurrentHistory(); if (idxRef[i] > 0) restoreFromHistory(idxRef[i] - 1); }
       function redo() { const { arr, idxRef, i } = getCurrentHistory(); if (idxRef[i] >= 0 && idxRef[i] < arr.length - 1) restoreFromHistory(idxRef[i] + 1); }
 
 
       let brush = null;
-      try { brush = new fabric.PencilBrush(canvas); } catch { try { brush = new fabric.PencilBrush({ canvas }); } catch { } }
+      try { brush = new fabric.PencilBrush(canvas); } catch (e) { try { brush = new fabric.PencilBrush({ canvas }); } catch (e) { } }
       if (!brush) brush = new fabric.PencilBrush(canvas);
       brush.color = '#ffffff';
       brush.width = 6;
@@ -697,7 +697,7 @@
             const c = String(b.getAttribute('data-color') || '').toLowerCase();
             b.style.outline = c === cur ? '2px solid #fff' : 'none';
           });
-        } catch { }
+        } catch (e) { }
       }
       penColor.addEventListener('input', () => { canvas.freeDrawingBrush.color = penColor.value; });
       penColor.addEventListener('input', () => { updatePenPaletteSelection(); });
@@ -708,7 +708,7 @@
           const v = Number(b.getAttribute('data-penw'));
           currentPenWidth = v;
           penWidthButtons.forEach(x => x.classList.toggle('active', x === b));
-          try { if (state.mode === 'draw' && canvas.freeDrawingBrush) canvas.freeDrawingBrush.width = v; } catch { }
+          try { if (state.mode === 'draw' && canvas.freeDrawingBrush) canvas.freeDrawingBrush.width = v; } catch (e) { }
         });
       });
       paletteBtns.forEach((b) => {
@@ -716,7 +716,7 @@
           const c = b.getAttribute('data-color');
           if (!c) return;
           penColor.value = c;
-          try { canvas.freeDrawingBrush.color = c; } catch { }
+          try { canvas.freeDrawingBrush.color = c; } catch (e) { }
           updatePenPaletteSelection();
         });
       });
@@ -731,7 +731,7 @@
             if (state.mode === 'erase' && fabric && fabric.EraserBrush && canvas.freeDrawingBrush && (canvas.freeDrawingBrush instanceof fabric.EraserBrush)) {
               canvas.freeDrawingBrush.width = state.eraseSize;
             }
-          } catch { }
+          } catch (e) { }
         });
       });
       let eraseInverted = false;
@@ -743,7 +743,7 @@
           if (state.mode === 'erase' && canvas.freeDrawingBrush && (canvas.freeDrawingBrush instanceof fabric.EraserBrush)) {
             canvas.freeDrawingBrush.inverted = eraseInverted;
           }
-        } catch { }
+        } catch (e) { }
       });
 
       clearPageBtn.addEventListener('click', () => {
@@ -753,10 +753,10 @@
         setMode('draw');
         state.pages[state.pageIndex] = null;
         if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll();
-        try { hideSelTools(); } catch { }
-        try { hidePopup(); } catch { }
-        try { updateEraseCursorVis(); } catch { }
-        try { recordHistory(); } catch { }
+        try { hideSelTools(); } catch (e) { }
+        try { hidePopup(); } catch (e) { }
+        try { updateEraseCursorVis(); } catch (e) { }
+        try { recordHistory(); } catch (e) { }
       });
 
       const btnDraw = document.getElementById('modeDraw');
@@ -780,7 +780,7 @@
       if (btnClose) btnClose.style.display = (showCloseParam === '0') ? 'none' : 'inline-flex';
       if (btnMin) btnMin.style.display = (showMinParam === '0') ? 'none' : 'inline-flex';
       if (btnSave) btnSave.style.display = (showSaveParam === '0') ? 'none' : 'inline-flex';
-      if (btnClose) btnClose.addEventListener('click', () => { try { if (window.annotateAPI && typeof window.annotateAPI.close === 'function') { window.annotateAPI.close(); } else { window.close(); } } catch { } });
+      if (btnClose) btnClose.addEventListener('click', () => { try { if (window.annotateAPI && typeof window.annotateAPI.close === 'function') { window.annotateAPI.close(); } else { window.close(); } } catch (e) { } });
       if (btnMin) btnMin.addEventListener('click', () => {
         try {
           savePageSnapshot(); savePackIfNeeded();
@@ -791,7 +791,7 @@
           if (window.annotateAPI && typeof window.annotateAPI.close === 'function') {
             window.annotateAPI.close();
           } else { window.close(); }
-        } catch { }
+        } catch (e) { }
       });
       if (btnSave) btnSave.addEventListener('click', () => { if (popup.style.display === 'flex' && savePanel.style.display === 'flex') { hidePopup(); } else { showPopup('save', btnSave); } });
       btnPan.addEventListener('click', () => { setMode('pan'); hidePopup(); updateEraseCursorVis(); });
@@ -808,8 +808,8 @@
           try {
             const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 });
             state.pageThumbs[state.pageIndex] = url;
-          } catch { }
-        } catch { }
+          } catch (e) { }
+        } catch (e) { }
       }
       function getTotalPages() { return Math.max(state.pages.length, state.pageIndex + 1); }
       function updatePageLabel() { document.getElementById('pageLabel').textContent = `${state.pageIndex + 1}/${getTotalPages()}`; }
@@ -821,7 +821,7 @@
           } else if (persistKey) {
             localStorage.setItem('wb.persist.' + persistKey, JSON.stringify(pack));
           }
-        } catch { }
+        } catch (e) { }
       }
       async function loadPackIfAny() {
         try {
@@ -838,16 +838,16 @@
           state.pageThumbs = new Array(state.pages.length).fill(null);
           if (obj.bg) state.bgColor = obj.bg;
           return true;
-        } catch { return false; }
+        } catch (e) { return false; }
       }
       function loadPageSnapshot(i) {
         const data = state.pages[i];
         canvas.clear();
         if (data) {
           restoring = true;
-          canvas.loadFromJSON(data, () => { try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch { } canvas.renderAll(); setMode(state.mode); try { if (state.mode === 'erase' && typeof fabric !== 'undefined' && fabric.EraserBrush) { if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) { const eb = new fabric.EraserBrush(canvas); eb.width = Number(state.eraseSize) || 80; eb.strokeLineCap = 'round'; eb.strokeLineJoin = 'round'; eb.inverted = false; eb.shadow = null; canvas.freeDrawingBrush = eb; } canvas.isDrawingMode = true; canvas.selection = false; canvas.skipTargetFind = true; } } catch { } setTimeout(() => { fit(); if (canvas.requestRenderAll) canvas.requestRenderAll(); }, 0); restoring = false; const { arr, idxRef } = getCurrentHistory(); arr.length = 0; const snap = getCanvasJSON(); if (snap) { arr.push(snap); const pi = state.pageIndex; idxRef[pi] = 0; } updateUndoRedoUI(); });
+          canvas.loadFromJSON(data, () => { try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch (e) { } canvas.renderAll(); setMode(state.mode); try { if (state.mode === 'erase' && typeof fabric !== 'undefined' && fabric.EraserBrush) { if (!(canvas.freeDrawingBrush instanceof fabric.EraserBrush)) { const eb = new fabric.EraserBrush(canvas); eb.width = Number(state.eraseSize) || 80; eb.strokeLineCap = 'round'; eb.strokeLineJoin = 'round'; eb.inverted = false; eb.shadow = null; canvas.freeDrawingBrush = eb; } canvas.isDrawingMode = true; canvas.selection = false; canvas.skipTargetFind = true; } } catch (e) { } setTimeout(() => { fit(); if (canvas.requestRenderAll) canvas.requestRenderAll(); }, 0); restoring = false; const { arr, idxRef } = getCurrentHistory(); arr.length = 0; const snap = getCanvasJSON(); if (snap) { arr.push(snap); const pi = state.pageIndex; idxRef[pi] = 0; } updateUndoRedoUI(); });
         } else {
-          try { setBackgroundColor(state.bgColor); } catch { }
+          try { setBackgroundColor(state.bgColor); } catch (e) { }
           if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll();
           try {
             if (state.mode === 'erase' && typeof fabric !== 'undefined' && fabric.EraserBrush) {
@@ -862,7 +862,7 @@
               }
               canvas.isDrawingMode = true; canvas.selection = false; canvas.skipTargetFind = true;
             }
-          } catch { }
+          } catch (e) { }
           const { arr, idxRef } = getCurrentHistory(); arr.length = 0; const snap = getCanvasJSON(); if (snap) { arr.push(snap); const pi = state.pageIndex; idxRef[pi] = 0; } updateUndoRedoUI();
         }
         updatePageLabel();
@@ -871,7 +871,7 @@
             const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 });
             state.pageThumbs[i] = url;
           }
-        } catch { }
+        } catch (e) { }
         savePackIfNeeded();
       }
       document.getElementById('prevPage').addEventListener('click', () => {
@@ -887,7 +887,7 @@
       });
       if (!(await loadPackIfAny())) { state.pages.push(null); state.pageThumbs.push(null); }
       loadPageSnapshot(0);
-      setInterval(() => { try { savePageSnapshot(); savePackIfNeeded(); } catch { } }, 3000);
+      setInterval(() => { try { savePageSnapshot(); savePackIfNeeded(); } catch (e) { } }, 3000);
 
       function download(filename, content, mime) {
         const a = document.createElement('a');
@@ -916,7 +916,7 @@
         if (!f) return;
         const reader = new FileReader();
         reader.onload = () => {
-          try { const data = JSON.parse(String(reader.result || '{}')); canvas.clear(); canvas.loadFromJSON(data, () => { canvas.renderAll(); setMode(state.mode); }); } catch { }
+          try { const data = JSON.parse(String(reader.result || '{}')); canvas.clear(); canvas.loadFromJSON(data, () => { canvas.renderAll(); setMode(state.mode); }); } catch (e) { }
         };
         reader.readAsText(f);
       });
@@ -945,7 +945,7 @@
           if (!p) return;
           if (state.mode === 'draw') { p.erasable = true; }
           else if (state.mode === 'erase' && fabric && fabric.EraserBrush) { p.selectable = false; p.evented = false; p.isEraser = true; }
-        } catch { }
+        } catch (e) { }
       });
 
 
@@ -964,7 +964,7 @@
           canvas.add(r);
           squareEraseRects.push(r);
           if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll();
-        } catch { }
+        } catch (e) { }
       }
 
 
@@ -978,7 +978,7 @@
           const x = cx - rect.left;
           const y = cy - rect.top;
           return { x, y };
-        } catch { return { x: 0, y: 0 }; }
+        } catch (e) { return { x: 0, y: 0 }; }
       }
       function getPointerCanvas(opt) {
         try {
@@ -989,7 +989,7 @@
             return { x: tp.x, y: tp.y };
           }
           return p;
-        } catch { return { x: 0, y: 0 }; }
+        } catch (e) { return { x: 0, y: 0 }; }
       }
       canvas.on('mouse:down', (opt) => {
         const e = opt.e;
@@ -1021,7 +1021,7 @@
           }
         }
       });
-      canvas.on('mouse:up', () => { if ((state.mode === 'erase' || state.mode === 'draw' || draggingPan) && !restoring) { try { recordHistory(); } catch { } } draggingErase = false; draggingPan = false; updateUndoRedoUI(); });
+      canvas.on('mouse:up', () => { if ((state.mode === 'erase' || state.mode === 'draw' || draggingPan) && !restoring) { try { recordHistory(); } catch (e) { } } draggingErase = false; draggingPan = false; updateUndoRedoUI(); });
 
       canvas.on('mouse:wheel', (opt) => {
         const e = opt.e; let delta = e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
@@ -1029,7 +1029,7 @@
         const p = typeof canvas.getPointer === 'function' ? canvas.getPointer(e) : { x: e.offsetX, y: e.offsetY };
         canvas.zoomToPoint(new fabric.Point(p.x, p.y), zoom);
         resizeEraseCursor(state.eraseSize);
-        try { if (!restoring) recordHistory(); } catch { }
+        try { if (!restoring) recordHistory(); } catch (e) { }
         updateUndoRedoUI();
         opt.e.preventDefault(); opt.e.stopPropagation();
       });
@@ -1051,7 +1051,7 @@
           else if (!(fabric && fabric.EraserBrush)) { const p = touchPointToCanvas(e.touches[0]); stampEraseAtCanvas(p.x, p.y); e.preventDefault(); }
         }
       }, { passive: false });
-      canvas.upperCanvasEl.addEventListener('touchend', (e) => { draggingPan = false; if ((state.mode === 'draw' || state.mode === 'erase') && !restoring) { try { recordHistory(); } catch { } } updateUndoRedoUI(); }, { passive: false });
+      canvas.upperCanvasEl.addEventListener('touchend', (e) => { draggingPan = false; if ((state.mode === 'draw' || state.mode === 'erase') && !restoring) { try { recordHistory(); } catch (e) { } } updateUndoRedoUI(); }, { passive: false });
 
       const selTools = document.createElement('div');
       selTools.id = 'selTools';
@@ -1067,7 +1067,7 @@
           const top = Math.min(board.getBoundingClientRect().height - 40, Math.max(tl.y, brp.y) + 6);
           selTools.style.left = left + 'px';
           selTools.style.top = top + 'px';
-        } catch { }
+        } catch (e) { }
       }
       function hideSelTools() { selTools.style.display = 'none'; }
       function showSelTools(obj) { positionSelTools(obj); selTools.style.display = 'flex'; }
@@ -1078,30 +1078,30 @@
       canvas.on('object:scaling', (e) => { const o = e.target; if (o && selTools.style.display === 'flex') positionSelTools(o); });
       canvas.on('object:rotating', (e) => { const o = e.target; if (o && selTools.style.display === 'flex') positionSelTools(o); });
       canvas.on('after:render', () => { const o = canvas.getActiveObject(); if (o && selTools.style.display === 'flex') positionSelTools(o); });
-      canvas.on('object:modified', () => { if (!restoring) { try { recordHistory(); } catch { } } updateUndoRedoUI(); });
+      canvas.on('object:modified', () => { if (!restoring) { try { recordHistory(); } catch (e) { } } updateUndoRedoUI(); });
       async function cloneObject(o) {
         try {
           if (!o) return null;
           let target = o;
           if (target.type === 'activeSelection' && typeof target.toGroup === 'function') {
-            try { target = target.toGroup(); } catch { }
+            try { target = target.toGroup(); } catch (e) { }
           }
           if (typeof target.clone !== 'function') return null;
           if (target.clone.length > 0) {
-            return await new Promise((resolve) => { try { target.clone((cl) => resolve(cl)); } catch { resolve(null); } });
+            return await new Promise((resolve) => { try { target.clone((cl) => resolve(cl)); } catch (e) { resolve(null); } });
           } else {
             const res = target.clone();
             if (res && typeof res.then === 'function') { return await res; }
             return res || null;
           }
-        } catch { return null; }
+        } catch (e) { return null; }
       }
       selTools.querySelector('#toolClone').addEventListener('click', async () => {
-        const o = canvas.getActiveObject(); if (!o) return; const cl = await cloneObject(o); if (!cl) return; cl.left = (o.left || 0) + 10; cl.top = (o.top || 0) + 10; canvas.add(cl); canvas.setActiveObject(cl); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch { }
+        const o = canvas.getActiveObject(); if (!o) return; const cl = await cloneObject(o); if (!cl) return; cl.left = (o.left || 0) + 10; cl.top = (o.top || 0) + 10; canvas.add(cl); canvas.setActiveObject(cl); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch (e) { }
       });
-      selTools.querySelector('#toolDelete').addEventListener('click', () => { const o = canvas.getActiveObject(); if (!o) return; canvas.remove(o); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); hideSelTools(); try { recordHistory(); } catch { } });
+      selTools.querySelector('#toolDelete').addEventListener('click', () => { const o = canvas.getActiveObject(); if (!o) return; canvas.remove(o); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); hideSelTools(); try { recordHistory(); } catch (e) { } });
       selTools.querySelector('#toolCloneNew').addEventListener('click', async () => {
-        const o = canvas.getActiveObject(); if (!o) return; const cl = await cloneObject(o); if (!cl) return; savePageSnapshot(); if (state.pageIndex >= state.pages.length - 1) state.pages.push(null); state.pageIndex++; loadPageSnapshot(state.pageIndex); cl.left = 40; cl.top = 40; canvas.add(cl); canvas.setActiveObject(cl); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); hideSelTools(); try { recordHistory(); } catch { }
+        const o = canvas.getActiveObject(); if (!o) return; const cl = await cloneObject(o); if (!cl) return; savePageSnapshot(); if (state.pageIndex >= state.pages.length - 1) state.pages.push(null); state.pageIndex++; loadPageSnapshot(state.pageIndex); cl.left = 40; cl.top = 40; canvas.add(cl); canvas.setActiveObject(cl); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); hideSelTools(); try { recordHistory(); } catch (e) { }
       });
 
       function updateBgButtonsActive() {
@@ -1112,8 +1112,8 @@
       }
       function setBackgroundColor(color) {
         state.bgColor = color;
-        try { canvas.setBackgroundColor(color, () => { updateBgButtonsActive(); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch { } }); }
-        catch { canvas.backgroundColor = color; updateBgButtonsActive(); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch { } }
+        try { canvas.setBackgroundColor(color, () => { updateBgButtonsActive(); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch (e) { } }); }
+        catch (e) { canvas.backgroundColor = color; updateBgButtonsActive(); if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll(); try { recordHistory(); } catch (e) { } }
       }
       document.getElementById('bgWhite').addEventListener('click', () => setBackgroundColor('#ffffff'));
       document.getElementById('bgDark').addEventListener('click', () => setBackgroundColor('#121212'));
@@ -1132,7 +1132,7 @@
           if (state.pageIndex >= state.pages.length) state.pageIndex = state.pages.length - 1;
           loadPageSnapshot(state.pageIndex);
           buildPagePreview();
-        } catch { }
+        } catch (e) { }
       }
       async function genThumbForPage(i, imgEl) {
         try {
@@ -1142,18 +1142,18 @@
           const dataForCanvas = parsed && parsed.data && parsed.data.objects ? parsed.data : raw;
           const bgColor = (parsed && parsed.backgroundColor) ? parsed.backgroundColor : (state.bgColor || '#121212');
           const el = document.createElement('canvas');
-          let sc = null; try { sc = new fabric.StaticCanvas(el); } catch { sc = null; }
+          let sc = null; try { sc = new fabric.StaticCanvas(el); } catch (e) { sc = null; }
           if (!sc) { state.pageThumbs[i] = ''; if (imgEl) imgEl.src = ''; return; }
           const w = Math.max(64, (typeof canvas.getWidth === 'function' ? canvas.getWidth() : 800));
           const h = Math.max(64, (typeof canvas.getHeight === 'function' ? canvas.getHeight() : 600));
-          try { if (typeof sc.setDimensions === 'function') sc.setDimensions({ width: w, height: h }); else { if (typeof sc.setWidth === 'function') sc.setWidth(w); if (typeof sc.setHeight === 'function') sc.setHeight(h); } } catch { }
-          try { sc.setBackgroundColor(bgColor, () => {}); } catch { sc.backgroundColor = bgColor; }
-          await new Promise((resolve) => { try { sc.loadFromJSON(dataForCanvas, () => resolve()); } catch { resolve(); } });
-          try { sc.renderAll(); } catch {}
-          let url = ''; try { url = sc.toDataURL({ format: 'png', multiplier: 0.2 }); } catch { url = ''; }
+          try { if (typeof sc.setDimensions === 'function') sc.setDimensions({ width: w, height: h }); else { if (typeof sc.setWidth === 'function') sc.setWidth(w); if (typeof sc.setHeight === 'function') sc.setHeight(h); } } catch (e) { }
+          try { sc.setBackgroundColor(bgColor, () => {}); } catch (e) { sc.backgroundColor = bgColor; }
+          await new Promise((resolve) => { try { sc.loadFromJSON(dataForCanvas, () => resolve()); } catch (e) { resolve(); } });
+          try { sc.renderAll(); } catch (e) {}
+          let url = ''; try { url = sc.toDataURL({ format: 'png', multiplier: 0.2 }); } catch (e) { url = ''; }
           state.pageThumbs[i] = url; if (imgEl) imgEl.src = url;
-          try { if (typeof sc.dispose === 'function') sc.dispose(); } catch { }
-        } catch { }
+          try { if (typeof sc.dispose === 'function') sc.dispose(); } catch (e) { }
+        } catch (e) { }
       }
       function buildPagePreview() {
         try {
@@ -1175,9 +1175,9 @@
           const btn = document.createElement('button'); btn.innerHTML = '<i class="ri-arrow-down-s-line"></i> 收起'; btn.addEventListener('click', () => hidePagePreview());
           f.appendChild(btn);
           pagePreview.appendChild(f);
-        } catch { }
+        } catch (e) { }
       }
-      function showPagePreview() { try { buildPagePreview(); pagePreview.style.display = 'flex'; } catch { } }
+      function showPagePreview() { try { buildPagePreview(); pagePreview.style.display = 'flex'; } catch (e) { } }
       function hidePagePreview() { pagePreview.style.display = 'none'; }
       document.getElementById('pageLabel').addEventListener('click', () => { if (pagePreview.style.display === 'flex') hidePagePreview(); else showPagePreview(); });
       document.addEventListener('mousedown', (e) => { const vis = pagePreview.style.display === 'flex'; if (vis) { const within = pagePreview.contains(e.target) || document.getElementById('pageLabel').contains(e.target); if (!within) hidePagePreview(); } });
@@ -1196,7 +1196,7 @@
           for (let i = 0; i < e.touches.length; i++) {
             const t = e.touches[i]; const id = t.identifier;
             if (!perTouchBrushes[id]) { const b = new fabric.PencilBrush(canvas); b.color = penColor.value; b.width = currentPenWidth; b.decimate = 2; perTouchBrushes[id] = b; }
-            const p = touchPointToCanvas(t); try { perTouchBrushes[id].onMouseDown(p); } catch { }
+            const p = touchPointToCanvas(t); try { perTouchBrushes[id].onMouseDown(p); } catch (e) { }
           }
         }
       }, { passive: false });
@@ -1204,7 +1204,7 @@
         if (state.mode === 'draw' && !state.twoFingerPan && e.touches.length > 1) {
           e.preventDefault();
           for (let i = 0; i < e.touches.length; i++) {
-            const t = e.touches[i]; const id = t.identifier; const p = touchPointToCanvas(t); try { if (perTouchBrushes[id]) perTouchBrushes[id].onMouseMove(p); } catch { }
+            const t = e.touches[i]; const id = t.identifier; const p = touchPointToCanvas(t); try { if (perTouchBrushes[id]) perTouchBrushes[id].onMouseMove(p); } catch (e) { }
           }
         }
       }, { passive: false });
@@ -1213,10 +1213,10 @@
           try {
             if (e.changedTouches) {
               for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i]; const id = t.identifier; try { if (perTouchBrushes[id]) perTouchBrushes[id].onMouseUp(); } catch { } delete perTouchBrushes[id];
+                const t = e.changedTouches[i]; const id = t.identifier; try { if (perTouchBrushes[id]) perTouchBrushes[id].onMouseUp(); } catch (e) { } delete perTouchBrushes[id];
               }
             }
-          } catch { }
+          } catch (e) { }
         }
       }, { passive: false });
     })();

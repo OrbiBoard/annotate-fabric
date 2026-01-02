@@ -35,7 +35,7 @@ export function getPointerScreen(canvas, opt) {
     const x = cx - rect.left;
     const y = cy - rect.top;
     return { x, y };
-  } catch { return { x: 0, y: 0 }; }
+  } catch (e) { return { x: 0, y: 0 }; }
 }
 
 export function getPointerCanvas(canvas, fabric, opt) {
@@ -47,7 +47,7 @@ export function getPointerCanvas(canvas, fabric, opt) {
       return { x: tp.x, y: tp.y };
     }
     return p;
-  } catch { return { x: 0, y: 0 }; }
+  } catch (e) { return { x: 0, y: 0 }; }
 }
 
 export function download(filename, content, mime) {

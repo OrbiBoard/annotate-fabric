@@ -13,13 +13,13 @@ function initIPC() {
     try {
       const win = BrowserWindow.fromWebContents(event.sender);
       if (win && !win.isDestroyed()) win.minimize();
-    } catch {}
+    } catch (e) {}
   });
   ipcMain.on('annotate:close', (event) => {
     try {
       const win = BrowserWindow.fromWebContents(event.sender);
       if (win && !win.isDestroyed()) win.close();
-    } catch {}
+    } catch (e) {}
   });
   ipcMain.on('annotate:saveJSON', (event, payload) => {
     try {
@@ -28,7 +28,7 @@ function initIPC() {
       const dir = path.dirname(filePath);
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(filePath, json, 'utf8');
-    } catch {}
+    } catch (e) {}
   });
   ipcMain.handle('annotate:loadJSON', async (event, payload) => {
     try {
@@ -36,7 +36,7 @@ function initIPC() {
       if (!filePath) return null;
       if (!fs.existsSync(filePath)) return null;
       return fs.readFileSync(filePath, 'utf8');
-    } catch { return null; }
+    } catch (e) { return null; }
   });
   ipcMain.on('annotate:minimizeWithSave', (event, payload) => {
     try {
@@ -48,7 +48,7 @@ function initIPC() {
         fs.writeFileSync(filePath, json, 'utf8');
       }
       if (win && !win.isDestroyed()) win.minimize();
-    } catch {}
+    } catch (e) {}
   });
 }
 
@@ -71,7 +71,7 @@ function openWhiteboardWindow() {
     webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') }
   });
   whiteboardWin = win;
-  try { win.setFullScreen(true); } catch {}
+  try { win.setFullScreen(true); } catch (e) {}
   const today = new Date();
   const year = today.getFullYear();
   const monthStr = String(today.getMonth() + 1).padStart(2, '0');

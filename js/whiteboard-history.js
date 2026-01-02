@@ -16,7 +16,7 @@ export function createHistory(canvas, state, undoBtn, redoBtn, setMode, fitFn, b
         height: typeof canvas.getHeight === 'function' ? canvas.getHeight() : null,
       };
       return JSON.stringify(pack);
-    } catch { return null; }
+    } catch (e) { return null; }
   }
   function updateUndoRedoUI() {
     const { arr, idxRef, i } = getCurrentHistory();
@@ -39,7 +39,7 @@ export function createHistory(canvas, state, undoBtn, redoBtn, setMode, fitFn, b
       idxRef[i] = arr.length - 1;
       if (arr.length > 50) { arr.splice(0, arr.length - 50); idxRef[i] = arr.length - 1; }
       updateUndoRedoUI();
-    } catch {}
+    } catch (e) {}
   }
   let restoring = false;
   async function restoreFromHistory(toIndex) {
@@ -50,12 +50,12 @@ export function createHistory(canvas, state, undoBtn, redoBtn, setMode, fitFn, b
       restoring = true;
       canvas.clear();
       let parsed = null;
-      try { parsed = JSON.parse(json); } catch { parsed = null; }
+      try { parsed = JSON.parse(json); } catch (e) { parsed = null; }
       const dataForCanvas = parsed && parsed.data && parsed.data.objects ? parsed.data : parsed;
       if (!dataForCanvas) { restoring = false; return; }
       canvas.loadFromJSON(dataForCanvas, () => {
-        try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch {}
-        try { setMode(state.mode); } catch {}
+        try { canvas.getObjects().forEach(o => { if (o && o.isEraser === true) { o.globalCompositeOperation = 'destination-out'; o.selectable = false; o.evented = false; } }); } catch (e) {}
+        try { setMode(state.mode); } catch (e) {}
         try {
           if (state.mode === 'erase') {
             if (typeof fabric !== 'undefined' && fabric.EraserBrush) {
@@ -72,33 +72,33 @@ export function createHistory(canvas, state, undoBtn, redoBtn, setMode, fitFn, b
             canvas.isDrawingMode = true;
             canvas.selection = false;
             canvas.skipTargetFind = true;
-            try { if (typeof updateEraseCursorVis === 'function') updateEraseCursorVis(); } catch {}
+            try { if (typeof updateEraseCursorVis === 'function') updateEraseCursorVis(); } catch (e) {}
           }
-        } catch {}
+        } catch (e) {}
         try {
           const defaultBg = state.bgColor || canvas.backgroundColor || '#121212';
           const toBg = (parsed && parsed.backgroundColor) ? parsed.backgroundColor : defaultBg;
           const applyBg = (!toBg || toBg === 'transparent') ? defaultBg : toBg;
           try { canvas.setBackgroundColor(applyBg, () => {}); }
-          catch { canvas.backgroundColor = applyBg; }
-        } catch {}
+          catch (e) { canvas.backgroundColor = applyBg; }
+        } catch (e) {}
         try {
           if (parsed && parsed.viewportTransform && typeof canvas.setViewportTransform === 'function') {
             canvas.setViewportTransform(parsed.viewportTransform);
           }
-        } catch {}
-        try { fitFn(board, canvas); } catch {}
+        } catch (e) {}
+        try { fitFn(board, canvas); } catch (e) {}
         if (canvas.requestRenderAll) canvas.requestRenderAll(); else canvas.renderAll();
         try {
           const pi = i;
           state.pages[pi] = canvas.toJSON();
-          try { const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 }); state.pageThumbs[pi] = url; } catch {}
-        } catch {}
+          try { const url = canvas.toDataURL({ format: 'png', multiplier: 0.2 }); state.pageThumbs[pi] = url; } catch (e) {}
+        } catch (e) {}
         restoring = false;
         idxRef[i] = toIndex;
         updateUndoRedoUI();
       });
-    } catch { restoring = false; }
+    } catch (e) { restoring = false; }
   }
   function undo() { const { idxRef, i } = getCurrentHistory(); if (idxRef[i] > 0) restoreFromHistory(idxRef[i] - 1); }
   function redo() { const { arr, idxRef, i } = getCurrentHistory(); if (idxRef[i] >= 0 && idxRef[i] < arr.length - 1) restoreFromHistory(idxRef[i] + 1); }

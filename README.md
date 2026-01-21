@@ -1,14 +1,9 @@
-# annotate-fabric 插件
+# 批注.FabricJS(废弃) (annotate-fabric)
 
-该仓库包含 OrbiBoard 主程序的 annotate-fabric 插件源码。
+## 简介
+基于 Fabric.js 的屏幕批注支持，提供白板窗口与可调用批注区域。
 
-用法
-- 将本目录作为独立 Git 仓库管理。
-- 依赖请在 `plugin.json` 的 `npmDependencies` 或 `dependencies` 中声明，由主程序在运行时通过插件依赖管理安装。
+> **注意**: 此插件已被标记为废弃 (Deprecated)。
 
-开发
-- 页面入口：`whiteboard.html`
-- 后端入口：`index.js`
-
-发布
-- 不需要包含 `node_modules`；主程序会在运行时解析依赖。
+## 功能
+- **打开白板**: 打开基于 Fabric.js 的白板窗口。
